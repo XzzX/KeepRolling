@@ -1,31 +1,32 @@
 grammar KeepRolling;
 
-prog: stat+ 
+prog: expr
     ;
 
-stat: expr NEWLINE        #print_expr
+expr: num
+    | lst
     ;
 
-expr: datum                    #expr_datum
-    | datum '!' (OP_PLUS | OP_GREATER | OP_LESS)   #expr_reduction
-    ;
+num: INT                                              #num_int
+   | lst '!' red_op                                   #num_reduction
+   ;
 
-datum: INT                #datum_int
-     | int_list           #datum_list
-     | roll               #datum_roll
-     ;
+lst: '[' INT (',' INT)* ']'                           #lst_lst
+   | INT DICE INT                                     #lst_roll
+   | lst map_op num                                   #lst_map
+   ;
 
-int_list: '[' INT (',' INT)* ']'
-        ;
+red_op: OP_ADD | OP_MUL | OP_GRE | OP_LES ;
+map_op: OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GRE | OP_LES | OP_EQL ;
 
-roll: INT DICE INT
-    ;
-
-OP_PLUS: '+' ;
-OP_GREATER: '>' ;
-OP_LESS: '<' ;
+OP_ADD: '+' ;
+OP_SUB: '-' ;
+OP_DIV: '/' ;
+OP_MUL: '*' ;
+OP_GRE: '>' ;
+OP_LES: '<' ;
+OP_EQL: '=' ;
 
 DICE   : [dDwW] ;
-INT    : [0-9]+ ;         // match integers
-NEWLINE: '\r'? '\n' ;     // return newlines to parser (is end-statement signal)
-WS     : [ \t]+ -> skip ; // toss out whitespace
+INT    : [0-9]+ ;             // match integers
+WS     : [ \t\r\n]+ -> skip ; // toss out whitespaces and tabs
